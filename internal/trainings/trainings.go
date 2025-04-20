@@ -19,23 +19,31 @@ type Training struct {
 }
 
 func (t *Training) Parse(datastring string) (err error) {
-
 	parts := strings.Split(datastring, ",")
 	if len(parts) != 3 {
 		return errors.New("input string must contain 3 parts: steps,type,duration")
 	}
 
-	steps, err := strconv.Atoi(parts[0])
+	stepStr := strings.TrimSpace(parts[0])
+	stepStr = strings.TrimPrefix(stepStr, "+") //trim добавлены, потому что не проходили автотесты
+	steps, err := strconv.Atoi(stepStr)
 	if err != nil {
 		return fmt.Errorf("failed to parse steps: %w", err)
+	}
+	if steps <= 0 {
+		return errors.New("steps must be a positive integer")
 	}
 	t.Steps = steps
 
 	t.TrainingType = strings.TrimSpace(parts[1])
 
-	duration, err := time.ParseDuration(strings.TrimSpace(parts[2]))
+	durationStr := strings.TrimSpace(parts[2])
+	duration, err := time.ParseDuration(durationStr)
 	if err != nil {
 		return fmt.Errorf("failed to parse duration: %w", err)
+	}
+	if duration <= 0 {
+		return errors.New("duration must be positive")
 	}
 	t.Duration = duration
 
@@ -65,7 +73,7 @@ func (t Training) ActionInfo() (string, error) {
 	}
 
 	info := fmt.Sprintf(
-		"Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f",
+		"Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f\n",
 		t.TrainingType,
 		t.Duration.Hours(),
 		distance,
